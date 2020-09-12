@@ -4,15 +4,13 @@ using System.Diagnostics;
 
 namespace AtCoder
 {
-    using __number__ = Int64;
-    //ここで int型 を使いたい場合は以下のように書き換える
-    //using __number__ = Int32;
+    using __MFGraph_long__ = Int64;
 
     /// <summary>
     /// 最大フロー問題 を解くライブラリです。
     /// </summary>
     /// <remarks>
-    /// <para>制約: <typeparamref name="__number__"/> は int, long。</para>
+    /// <para>制約: <typeparamref name="__MFGraph_long__"/> は int, long。</para>
     /// <para>
     /// 内部では各辺 e について 2 つの変数、流量 f_e と容量 c_e を管理しています。
     /// 頂点 v から出る辺の集合を out(v)、入る辺の集合を in(v)、
@@ -55,7 +53,7 @@ namespace AtCoder
         /// </list>
         /// <para>計算量: ならしO(1)</para>
         /// </remarks>
-        public int AddEdge(int from, int to, __number__ cap)
+        public int AddEdge(int from, int to, __MFGraph_long__ cap)
         {
             int m = _pos.Count;
             Debug.Assert(0 <= from && from < _n);
@@ -112,7 +110,7 @@ namespace AtCoder
         /// <paramref name="newCap"/>, <paramref name="newFlow"/> へ変更します。
         /// </para>
         /// </remarks>
-        public void ChangeEdge(int i, __number__ newCap, __number__ newFlow)
+        public void ChangeEdge(int i, __MFGraph_long__ newCap, __MFGraph_long__ newFlow)
         {
             int m = _pos.Count;
             Debug.Assert(0 <= i && i < m);
@@ -154,7 +152,7 @@ namespace AtCoder
         /// </description>
         /// </item>
         /// </list>
-        /// <para>制約: 返値が <typeparamref name="TValue"/> に収まる。</para>
+        /// <para>制約: 返値が <typeparamref name="__MFGraph_long__"/> に収まる。</para>
         /// 計算量: m を追加された辺数として、
         /// <list type="bullet">
         /// <item>
@@ -165,7 +163,7 @@ namespace AtCoder
         /// </item>
         /// </list>
         /// </remarks>
-        public __number__ Flow(int s, int t, __number__ flowLimit = __number__.MaxValue)
+        public __MFGraph_long__ Flow(int s, int t, __MFGraph_long__ flowLimit = __MFGraph_long__.MaxValue)
         {
             Debug.Assert(0 <= s && s < _n);
             Debug.Assert(0 <= t && t < _n);
@@ -197,10 +195,10 @@ namespace AtCoder
                 }
             }
 
-            __number__ Dfs(int v, __number__ up)
+            __MFGraph_long__ Dfs(int v, __MFGraph_long__ up)
             {
                 if (v == s) return up;
-                __number__ res = 0;
+                __MFGraph_long__ res = 0;
                 int level_v = level[v];
                 for (; iter[v] < _g[v].Count; iter[v]++)
                 {
@@ -219,7 +217,7 @@ namespace AtCoder
                 return res;
             }
 
-            __number__ flow = 0;
+            __MFGraph_long__ flow = 0;
             while (flow < flowLimit)
             {
                 Bfs();
@@ -290,10 +288,10 @@ namespace AtCoder
             /// <summary>フローが流入する頂点。</summary>
             public int To { get; set; }
             /// <summary>辺の容量。</summary>
-            public __number__ Cap { get; set; }
+            public __MFGraph_long__ Cap { get; set; }
             /// <summary>辺の流量。</summary>
-            public __number__ Flow { get; set; }
-            public Edge(int from, int to, __number__ cap, __number__ flow)
+            public __MFGraph_long__ Flow { get; set; }
+            public Edge(int from, int to, __MFGraph_long__ cap, __MFGraph_long__ flow)
             {
                 From = from;
                 To = to;
@@ -306,8 +304,8 @@ namespace AtCoder
         {
             public int To { get; set; }
             public int Rev { get; set; }
-            public __number__ Cap { get; set; }
-            public EdgeInternal(int to, int rev, __number__ cap)
+            public __MFGraph_long__ Cap { get; set; }
+            public EdgeInternal(int to, int rev, __MFGraph_long__ cap)
             {
                 To = to;
                 Rev = rev;
