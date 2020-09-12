@@ -1,37 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace AtCoder
 {
-    /// <summary>
-    /// 最大フロー問題 を解くライブラリ(int版)です。
-    /// </summary>
-    public class MFGraphInt : MFGraph<int, IntOperator> { public MFGraphInt(int n) : base(n) { } }
-
-    /// <summary>
-    /// 最大フロー問題 を解くライブラリ(long版)です。
-    /// </summary>
-    public class MFGraphLong : MFGraph<long, LongOperator> { public MFGraphLong(int n) : base(n) { } }
+    using __number__ = Int64;
+    //ここで int型 を使いたい場合は以下のように書き換える
+    //using __number__ = Int32;
 
     /// <summary>
     /// 最大フロー問題 を解くライブラリです。
     /// </summary>
-    /// <typeparam name="TValue">容量の型</typeparam>
-    /// <typeparam name="TOp"><typeparamref name="TValue"/>に対応する演算を提要する型</typeparam>
     /// <remarks>
-    /// <para>制約: <typeparamref name="TValue"/> は int, long。</para>
+    /// <para>制約: <typeparamref name="__number__"/> は int, long。</para>
     /// <para>
     /// 内部では各辺 e について 2 つの変数、流量 f_e と容量 c_e を管理しています。
     /// 頂点 v から出る辺の集合を out(v)、入る辺の集合を in(v)、
     /// また頂点 v について g(v, f) = (Σ_in(v) f_e) - (Σ_out(v) f_e) とします。 
     /// </para>
     /// </remarks>
-    public class MFGraph<TValue, TOp>
-         where TValue : struct
-         where TOp : struct, INumOperator<TValue>
+    public class MFGraph
     {
-        static readonly TOp op = default;
-
         /// <summary>
         /// <paramref name="n"/> 頂点 0 辺のグラフを作ります。
         /// </summary>
@@ -66,15 +55,15 @@ namespace AtCoder
         /// </list>
         /// <para>計算量: ならしO(1)</para>
         /// </remarks>
-        public int AddEdge(int from, int to, TValue cap)
+        public int AddEdge(int from, int to, __number__ cap)
         {
             int m = _pos.Count;
             Debug.Assert(0 <= from && from < _n);
             Debug.Assert(0 <= to && to < _n);
-            Debug.Assert(op.LessThanOrEqual(default, cap));
+            Debug.Assert(0 <= cap);
             _pos.Add((from, _g[from].Count));
             _g[from].Add(new EdgeInternal(to, _g[to].Count, cap));
-            _g[to].Add(new EdgeInternal(from, _g[from].Count - 1, default));
+            _g[to].Add(new EdgeInternal(from, _g[from].Count - 1, 0));
             return m;
         }
 
@@ -91,7 +80,7 @@ namespace AtCoder
             Debug.Assert(0 <= i && i < m);
             var _e = _g[_pos[i].first][_pos[i].second];
             var _re = _g[_e.To][_e.Rev];
-            return new Edge(_pos[i].first, _e.To, op.Add(_e.Cap, _re.Cap), _re.Cap);
+            return new Edge(_pos[i].first, _e.To, _e.Cap + _re.Cap, _re.Cap);
         }
 
         /// <summary>
@@ -123,61 +112,15 @@ namespace AtCoder
         /// <paramref name="newCap"/>, <paramref name="newFlow"/> へ変更します。
         /// </para>
         /// </remarks>
-        public void ChangeEdge(int i, TValue newCap, TValue newFlow)
+        public void ChangeEdge(int i, __number__ newCap, __number__ newFlow)
         {
             int m = _pos.Count;
             Debug.Assert(0 <= i && i < m);
-            Debug.Assert(op.LessThanOrEqual(default, newFlow) && op.LessThanOrEqual(newFlow, newCap));
+            Debug.Assert(0 <= newFlow && newFlow <= newCap);
             var _e = _g[_pos[i].first][_pos[i].second];
             var _re = _g[_e.To][_e.Rev];
-            _e.Cap = op.Subtract(newCap, newFlow);
+            _e.Cap = newCap - newFlow;
             _re.Cap = newFlow;
-        }
-
-        /// <summary>
-        /// 頂点 <paramref name="s"/> から <paramref name="t"/> へ流せる限り流し、
-        /// 流せた量を返します。
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// 複数回呼ぶことも可能で、その時の挙動は
-        /// 変更前と変更後の流量を f_e, f'_e として、以下の条件を満たすように変更します。
-        /// </para>
-        /// <list type="bullet">
-        /// <item>
-        /// <description>0 ≤ f'_e ≤ C_e</description>
-        /// </item>
-        /// <item>
-        /// <description>
-        /// <paramref name="s"/>, <paramref name="t"/> 以外の頂天 v について、
-        /// g(v, f) = g(v, f')
-        /// </description>
-        /// </item>
-        /// <item>
-        /// <description>
-        /// (flowLimit を指定した場合) g(t, f') - g(t, f) ≤ flowLimit
-        /// </description>
-        /// </item>
-        /// <item>
-        /// <description>
-        /// g(t, f') - g(t, f) が委譲の条件を満たすうち最大。この g(t, f') - g(t, f) を返す。
-        /// </description>
-        /// </item>
-        /// </list>
-        /// <para>制約: 返値が <typeparamref name="TValue"/> に収まる。</para>
-        /// 計算量: m を追加された辺数として、
-        /// <list type="bullet">
-        /// <item>
-        /// <description>O(min(n^(2/3) m, m^(3/2))) (辺の容量が全部 1 の時)</description>
-        /// </item>
-        /// <item>
-        /// <description>O(n^2 m)</description>
-        /// </item>
-        /// </list>
-        /// </remarks>
-        public TValue Flow(int s, int t)
-        {
-            return Flow(s, t, op.MaxValue);
         }
 
         /// <summary>
@@ -222,7 +165,7 @@ namespace AtCoder
         /// </item>
         /// </list>
         /// </remarks>
-        public TValue Flow(int s, int t, TValue flowLimit)
+        public __number__ Flow(int s, int t, __number__ flowLimit = __number__.MaxValue)
         {
             Debug.Assert(0 <= s && s < _n);
             Debug.Assert(0 <= t && t < _n);
@@ -246,7 +189,7 @@ namespace AtCoder
                     int v = que.Dequeue();
                     foreach (var e in _g[v])
                     {
-                        if (op.Equals(e.Cap, default) || level[e.To] >= 0) continue;
+                        if (e.Cap == 0 || level[e.To] >= 0) continue;
                         level[e.To] = level[v] + 1;
                         if (e.To == t) return;
                         que.Enqueue(e.To);
@@ -254,30 +197,30 @@ namespace AtCoder
                 }
             }
 
-            TValue Dfs(int v, TValue up)
+            __number__ Dfs(int v, __number__ up)
             {
                 if (v == s) return up;
-                var res = default(TValue);
+                __number__ res = 0;
                 int level_v = level[v];
                 for (; iter[v] < _g[v].Count; iter[v]++)
                 {
                     EdgeInternal e = _g[v][iter[v]];
-                    if (level_v <= level[e.To] || op.Equals(_g[e.To][e.Rev].Cap, default)) continue;
-                    var up1 = op.Subtract(up, res);
+                    if (level_v <= level[e.To] || _g[e.To][e.Rev].Cap == 0) continue;
+                    var up1 = up - res;
                     var up2 = _g[e.To][e.Rev].Cap;
-                    var d = Dfs(e.To, op.LessThan(up1, up2) ? up1 : up2);
-                    if (op.Compare(d, default) <= 0) continue;
-                    _g[v][iter[v]].Cap = op.Add(_g[v][iter[v]].Cap, d);
-                    _g[e.To][e.Rev].Cap = op.Subtract(_g[e.To][e.Rev].Cap, d);
-                    res = op.Add(res, d);
-                    if (res.Equals(up)) break;
+                    var d = Dfs(e.To, System.Math.Min(up1, up2));
+                    if (d <= 0) continue;
+                    _g[v][iter[v]].Cap += d;
+                    _g[e.To][e.Rev].Cap += d;
+                    res += d;
+                    if (res == up) break;
                 }
 
                 return res;
             }
 
-            TValue flow = default;
-            while (op.LessThan(flow, flowLimit))
+            __number__ flow = 0;
+            while (flow < flowLimit)
             {
                 Bfs();
                 if (level[t] == -1) break;
@@ -285,11 +228,11 @@ namespace AtCoder
                 {
                     iter[i] = 0;
                 }
-                while (op.LessThan(flow, flowLimit))
+                while (flow < flowLimit)
                 {
-                    var f = Dfs(t, op.Subtract(flowLimit, flow));
-                    if (op.Equals(f, default)) break;
-                    flow = op.Add(flow, f);
+                    var f = Dfs(t, flowLimit - flow);
+                    if (f == 0) break;
+                    flow += f;
                 }
             }
             return flow;
@@ -326,7 +269,7 @@ namespace AtCoder
                 visited[p] = true;
                 foreach (var e in _g[p])
                 {
-                    if (!op.Equals(e.Cap, default) && !visited[e.To])
+                    if (e.Cap != 0 && !visited[e.To])
                     {
                         visited[e.To] = true;
                         que.Enqueue(e.To);
@@ -347,10 +290,10 @@ namespace AtCoder
             /// <summary>フローが流入する頂点。</summary>
             public int To { get; set; }
             /// <summary>辺の容量。</summary>
-            public TValue Cap { get; set; }
+            public __number__ Cap { get; set; }
             /// <summary>辺の流量。</summary>
-            public TValue Flow { get; set; }
-            public Edge(int from, int to, TValue cap, TValue flow)
+            public __number__ Flow { get; set; }
+            public Edge(int from, int to, __number__ cap, __number__ flow)
             {
                 From = from;
                 To = to;
@@ -363,8 +306,8 @@ namespace AtCoder
         {
             public int To { get; set; }
             public int Rev { get; set; }
-            public TValue Cap { get; set; }
-            public EdgeInternal(int to, int rev, TValue cap)
+            public __number__ Cap { get; set; }
+            public EdgeInternal(int to, int rev, __number__ cap)
             {
                 To = to;
                 Rev = rev;
